@@ -1,0 +1,25 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.title {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.title b {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart {
+  width: 100%;
+  height: 240px;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--muted);
+}

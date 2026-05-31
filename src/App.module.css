@@ -1,0 +1,122 @@
+.app {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 28px 28px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header h1 {
+  font-size: 24px;
+}
+
+.header p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 720px;
+}
+
+/* 表示モードトグル（講義 / 詳細） */
+.modeToggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.modeToggle button {
+  border: 0;
+  background: var(--panel);
+  padding: 8px 18px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.modeToggle button.modeOn {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* シナリオプリセット行 */
+.scenarios {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--accent-weak);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.scenariosLabel {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.scenarios button {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.scenarios button:hover {
+  border-color: var(--accent);
+}
+
+.scenarios button.scenarioOn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* 講義モード: 余白広め・フォント気持ち大きめ（投影で見やすく） */
+.lecture {
+  font-size: 15px;
+}
+
+.lecture .scenarios {
+  gap: 10px;
+  padding: 14px 18px;
+}
+
+.lecture .scenarios button {
+  font-size: 14px;
+  padding: 9px 16px;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+@media (max-width: 1100px) {
+  .panels {
+    grid-template-columns: 1fr;
+  }
+}
