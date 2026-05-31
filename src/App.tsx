@@ -153,6 +153,7 @@ export default function App() {
             onSelectRadius={setRSel}
             diffusionOnlyRef={diffusionOnlyRef}
             unit={effUnit}
+            showZeroRef={uiMode === "detail"}
           />
         </div>
       </div>
@@ -174,6 +175,7 @@ export default function App() {
           params={sim.params}
           metrics={metrics}
           zeroOrderNecrosisRadius={zeroOrderNecrosisRadius}
+          showZeroRef={uiMode === "detail"}
         />
       </div>
 

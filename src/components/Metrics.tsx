@@ -12,6 +12,7 @@ interface Props {
   params: Params;
   metrics: M;
   zeroOrderNecrosisRadius: number | null; // ゼロ次参照の r_p（現在BCで数値計算）
+  showZeroRef: boolean; // ゼロ次（消費一定）参照を表示するか（詳細モードのみ）
 }
 
 const EFF_LABEL: Record<ReturnType<typeof effectiveOuterBC>, string> = {
@@ -44,7 +45,7 @@ function outerBCLabel(p: Params): string {
   }
 }
 
-export function Metrics({ params, metrics: m, zeroOrderNecrosisRadius }: Props) {
+export function Metrics({ params, metrics: m, zeroOrderNecrosisRadius, showZeroRef }: Props) {
   const reactionTex =
     params.reaction === "mm"
       ? "R(C)=\\rho\\,q_{max}\\dfrac{C}{K_m+C}"
@@ -159,34 +160,45 @@ export function Metrics({ params, metrics: m, zeroOrderNecrosisRadius }: Props) 
           )}
         </section>
 
-        {/* 4. ゼロ次参照 */}
-        <section className={styles.col}>
-          <div className={styles.colLabel}>ゼロ次参照（同一BC）</div>
-          <div className={styles.grid}>
-            <div className={styles.cell}>
-              <span className={styles.k}>臨界厚 L_crit</span>
-              <span className={styles.v}>
-                {Number.isFinite(m.lCrit) ? mToUm(m.lCrit).toFixed(0) : "∞"} <small>µm</small>
-              </span>
+        {/* 4. ゼロ次（消費一定）参照 — 詳細モードのみ。講義モードは MM だけで混乱を避ける */}
+        {showZeroRef && (
+          <section className={styles.col}>
+            <div className={styles.colLabel}>ゼロ次（消費一定）の参考値</div>
+            <div className={styles.grid}>
+              <div className={styles.cell}>
+                <span className={styles.k}>臨界厚 L_crit</span>
+                <span className={styles.v}>
+                  {Number.isFinite(m.lCrit) ? mToUm(m.lCrit).toFixed(0) : "∞"} <small>µm</small>
+                </span>
+              </div>
+              <div className={styles.cell}>
+                <span className={styles.k}>壊死前縁 r_p,0</span>
+                <span className={styles.v}>
+                  {zeroOrderNecrosisRadius != null
+                    ? mToUm(zeroOrderNecrosisRadius).toFixed(0)
+                    : "なし"}{" "}
+                  <small>µm</small>
+                </span>
+              </div>
             </div>
-            <div className={styles.cell}>
-              <span className={styles.k}>壊死前縁 r_p,0</span>
-              <span className={styles.v}>
-                {zeroOrderNecrosisRadius != null
-                  ? mToUm(zeroOrderNecrosisRadius).toFixed(0)
-                  : "なし"}{" "}
-                <small>µm</small>
-              </span>
+            <div className={styles.note}>
+              これは「消費が濃度に依らず一定（ゼロ次）」と仮定した単純モデルの参考値。
+              本シミュレータの計算は Michaelis–Menten（消費が濃度で鈍る）で、上の数値解とは別物。
+              Da &gt; 2 が壊死コア発生の目安。
             </div>
-          </div>
-          <div className={styles.note}>
-            Da &gt; 2 は平板片側灌流での壊死コア発生の目安。壊死前縁は
-            {params.species === "O2"
-              ? " 壊死閾値 C_necrosis（編集可・既定 0.003 mM≈2.3 mmHg）"
-              : " 枯渇閾値 0.1·K_m"}
-            で判定。点線「ゼロ次参照」は同一BCのゼロ次定常で、MM の数値指標とは別物。
-          </div>
-        </section>
+          </section>
+        )}
+        {!showZeroRef && (
+          <section className={styles.col}>
+            <div className={styles.note}>
+              壊死前縁は
+              {params.species === "O2"
+                ? " 壊死閾値 C_necrosis（既定 0.003 mM≈2.3 mmHg）"
+                : " 枯渇閾値 0.1·K_m"}
+              で判定。消費は Michaelis–Menten で計算しています。
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
