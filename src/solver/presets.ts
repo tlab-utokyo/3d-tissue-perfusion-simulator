@@ -25,7 +25,8 @@ export type CextMode = "zero" | "C0" | "air" | "custom";
 export interface Params {
   species: Species;
   D: number; // 拡散係数 [m^2/s]
-  C0: number; // ルーメン濃度（Dirichlet @ r=a） [mol/m^3]
+  C0: number; // ルーメン濃度（内面 r=a の Dirichlet） [mol/m^3]
+  Cmedium: number; // 培養液（外界）濃度（培地浴の外面 r=b の Dirichlet）。C0 とは独立 [mol/m^3]
   Km: number; // Michaelis 定数 [mol/m^3]
   qmax: number; // 1細胞あたり最大取り込み [mol/cell/s]
   rho: number; // 細胞密度 [cells/m^3]
@@ -128,9 +129,10 @@ export function effectiveOuterBC(p: Params): EffectiveOuterBC {
   }
 }
 
-/** Dirichlet 外面の固定値: 培地浴=C0 / 空気接触(O2)=C_air */
+/** Dirichlet 外面 r=b の固定値: 培地浴=培養液濃度 C_medium / 空気接触(O2)=C_air。
+ *  ※ 内面 r=a は常にルーメン濃度 C0。外面は C0 とは独立（培養液の濃度）。 */
 export function dirichletValue(p: Params): number {
-  return p.outerBC === "air" && p.species === "O2" ? p.Cair : p.C0;
+  return p.outerBC === "air" && p.species === "O2" ? p.Cair : p.Cmedium;
 }
 
 /** 薄水層 Robin の外部参照濃度 C_ext [mol/m^3] を解決する（air は O2 のみ有効, 他は 0 扱い） */
@@ -187,6 +189,7 @@ export const PRESETS: Record<Species, Params> = {
     species: "O2",
     D: 2.0e-9,
     C0: mMToSI(0.2),
+    Cmedium: mMToSI(0.2), // 培養液の溶存O2（空気飽和 ≈0.2 mM）。C0 とは独立
     Km: mMToSI(1e-3),
     qmax: 3e-17,
     ...COMMON,
@@ -195,6 +198,7 @@ export const PRESETS: Record<Species, Params> = {
     species: "Glucose",
     D: 0.7e-9,
     C0: mMToSI(5.0),
+    Cmedium: mMToSI(5.0), // 培養液のグルコース濃度
     Km: mMToSI(0.5),
     qmax: 5e-17,
     ...COMMON,
@@ -213,6 +217,7 @@ export function applySpecies(current: Params, species: Species): Params {
     species,
     D: base.D,
     C0: base.C0,
+    Cmedium: base.Cmedium,
     Km: base.Km,
     qmax: base.qmax,
   };

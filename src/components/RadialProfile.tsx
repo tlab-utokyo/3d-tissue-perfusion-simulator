@@ -26,7 +26,6 @@ interface Props {
   grid: Grid;
   field: Float64Array;
   steadyField: Float64Array;
-  zeroOrderRef: Float64Array; // ゼロ次解析（クランプ済み）参照
   params: Params;
   threshold: number; // 壊死閾値 [mol/m^3]
   hypoxiaThresh: number | null; // 低酸素閾値 [mol/m^3]（O2のみ, null=非表示）
@@ -37,14 +36,12 @@ interface Props {
   onSelectRadius: (r: number) => void;
   diffusionOnlyRef: Float64Array | null; // 灌流ON時の「拡散のみ(ΔP=0)」比較
   unit: ConcUnit; // 濃度表示単位（mM / mmHg）
-  showZeroRef: boolean; // ゼロ次（消費一定）参照を表示するか（詳細モードのみ）
 }
 
 export function RadialProfile({
   grid,
   field,
   steadyField,
-  zeroOrderRef,
   params,
   threshold,
   hypoxiaThresh,
@@ -55,7 +52,6 @@ export function RadialProfile({
   onSelectRadius,
   diffusionOnlyRef,
   unit,
-  showZeroRef,
 }: Props) {
   const toY = (cSI: number) => concToDisplay(cSI, unit);
   const fmt = (cSI: number) => `${concToDisplay(cSI, unit).toPrecision(2)} ${unit}`;
@@ -76,14 +72,13 @@ export function RadialProfile({
         C: toY(field[i]),
         steady: toY(steadyField[i]),
       };
-      if (showZeroRef) row.zero = toY(zeroOrderRef[i]);
       if (diffusionOnlyRef) row.diffOnly = toY(diffusionOnlyRef[i]);
       snapshots.forEach((s, k) => {
         row[`s${k}`] = toY(s.field[i]);
       });
       return row;
     });
-  }, [grid, field, steadyField, zeroOrderRef, diffusionOnlyRef, snapshots, unit, showZeroRef]);
+  }, [grid, field, steadyField, diffusionOnlyRef, snapshots, unit]);
 
   const aUm = Math.round(mToUm(grid.a));
   const bUm = Math.round(mToUm(grid.b));
@@ -95,7 +90,6 @@ export function RadialProfile({
     <div className={styles.wrap}>
       <div className={styles.title}>
         径方向プロファイル C(r) [{unit}] — 実線:現在 / 破線:定常
-        {showZeroRef ? " / 点線:ゼロ次（消費一定）" : ""}
       </div>
       <div className={styles.chart}>
         <ResponsiveContainer width="100%" height="100%">
@@ -222,18 +216,6 @@ export function RadialProfile({
                 name="拡散のみ (ΔP=0)"
                 stroke="#94a3b8"
                 strokeDasharray="4 4"
-                strokeWidth={1.5}
-                dot={false}
-                isAnimationActive={false}
-              />
-            )}
-            {/* ゼロ次（消費一定）参照・点線（詳細モードのみ） */}
-            {showZeroRef && (
-              <Line
-                dataKey="zero"
-                name="ゼロ次（消費一定）"
-                stroke="#a855f7"
-                strokeDasharray="2 3"
                 strokeWidth={1.5}
                 dot={false}
                 isAnimationActive={false}

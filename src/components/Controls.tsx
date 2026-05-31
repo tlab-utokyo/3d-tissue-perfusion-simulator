@@ -3,7 +3,7 @@
  * 物質/外側BC/反応律トグル、各パラメータのスライダ+数値入力、時間制御 + 定常ソルブ。
  * 表示は µm / mM / cells/mL、内部 Params は SI（units.ts で変換）。
  */
-import type { Params, Species, OuterBC, Reaction } from "../solver/presets";
+import type { Params, Species, OuterBC } from "../solver/presets";
 import {
   applySpecies,
   applyCellType,
@@ -149,28 +149,7 @@ export function Controls(props: Props) {
         </div>
       </div>
 
-      {/* 反応律トグル（詳細モードのみ。講義モードは MM 固定） */}
-      {detail && (
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>反応律</span>
-          <div className={styles.toggle}>
-            {(
-              [
-                ["mm", "Michaelis–Menten"],
-                ["zero", "ゼロ次"],
-              ] as [Reaction, string][]
-            ).map(([v, label]) => (
-              <button
-                key={v}
-                className={p.reaction === v ? styles.on : ""}
-                onClick={() => set({ reaction: v })}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* 消費は常に Michaelis–Menten（ゼロ次設定は撤去） */}
 
       {/* 濃度表示単位（詳細モードのみ・O2 で mmHg 切替可。講義モードは mM 固定） */}
       {detail && (
@@ -296,13 +275,23 @@ export function Controls(props: Props) {
         {detail && (
           <>
         <Slider
-          name="ルーメン濃度 C₀"
+          name="ルーメン濃度 C₀（内面 r=a）"
           unit="mM"
           value={siToMM(p.C0)}
           min={0.01}
           max={20}
           log
           onChange={(v) => set({ C0: mMToSI(v) })}
+        />
+        <Slider
+          name="培養液濃度 C_medium（外面 r=b）"
+          unit="mM"
+          value={siToMM(p.Cmedium)}
+          min={0.01}
+          max={20}
+          log
+          disabled={p.outerBC !== "bath"}
+          onChange={(v) => set({ Cmedium: mMToSI(v) })}
         />
         <Slider
           name="取り込み q_max"

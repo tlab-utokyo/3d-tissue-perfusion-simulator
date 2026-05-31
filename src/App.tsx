@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { PRESETS, outerRadius, hasPerfusion, SCENARIOS, applyScenario, matchScenario } from "./solver/presets";
-import { computeMetrics, firstCrossingRadius } from "./solver/metrics";
+import { computeMetrics } from "./solver/metrics";
 import { solveSteadyProfile } from "./solver/pde";
 import { N_DEFAULT } from "./solver/grid";
 import type { ConcUnit } from "./solver/units";
@@ -47,20 +47,6 @@ export default function App() {
     [sim.params, sim.grid, sim.field],
   );
 
-  // ゼロ次参照プロファイル: 現在の境界条件のままゼロ次定常を数値的に解く（BC整合）。
-  // MM のときも比較基準として表示し、両者を混同しないよう別ラベルにする。
-  const zeroOrderRef = useMemo(() => {
-    const f = solveSteadyProfile({ ...sim.params, reaction: "zero" }, N_DEFAULT).field.slice();
-    for (let i = 0; i < f.length; i++) if (f[i] < 0) f[i] = 0;
-    return f;
-  }, [sim.params]);
-
-  // ゼロ次参照の壊死前縁（同じ閾値で評価）
-  const zeroOrderNecrosisRadius = useMemo(
-    () => firstCrossingRadius(sim.grid, zeroOrderRef, metrics.threshold),
-    [sim.grid, zeroOrderRef, metrics.threshold],
-  );
-
   // 灌流が実際に効くとき（外面流出可＋ΔP>0）のみ「拡散のみ(ΔP=0)」定常を比較表示。
   const diffusionOnlyRef = useMemo(() => {
     if (!hasPerfusion(sim.params)) return null;
@@ -93,20 +79,22 @@ export default function App() {
         </p>
       </header>
 
-      {/* シナリオプリセット（演習問題） */}
-      <div className={styles.scenarios}>
-        <span className={styles.scenariosLabel}>シナリオ:</span>
-        {SCENARIOS.map((s) => (
-          <button
-            key={s.id}
-            className={activeScenario === s.id ? styles.scenarioOn : ""}
-            title={s.hint}
-            onClick={() => applyScenarioById(s.id)}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
+      {/* シナリオプリセット（演習問題）— 詳細モードのみ表示 */}
+      {uiMode === "detail" && (
+        <div className={styles.scenarios}>
+          <span className={styles.scenariosLabel}>シナリオ:</span>
+          {SCENARIOS.map((s) => (
+            <button
+              key={s.id}
+              className={activeScenario === s.id ? styles.scenarioOn : ""}
+              title={s.hint}
+              onClick={() => applyScenarioById(s.id)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <Controls
         params={sim.params}
@@ -142,7 +130,6 @@ export default function App() {
             grid={sim.grid}
             field={sim.field}
             steadyField={sim.steadyField}
-            zeroOrderRef={zeroOrderRef}
             params={sim.params}
             threshold={metrics.threshold}
             hypoxiaThresh={metrics.hypoxiaThresh}
@@ -153,7 +140,6 @@ export default function App() {
             onSelectRadius={setRSel}
             diffusionOnlyRef={diffusionOnlyRef}
             unit={effUnit}
-            showZeroRef={uiMode === "detail"}
           />
         </div>
       </div>
@@ -171,12 +157,7 @@ export default function App() {
       </div>
 
       <div className={styles.panel}>
-        <Metrics
-          params={sim.params}
-          metrics={metrics}
-          zeroOrderNecrosisRadius={zeroOrderNecrosisRadius}
-          showZeroRef={uiMode === "detail"}
-        />
+        <Metrics params={sim.params} metrics={metrics} />
       </div>
 
       <Explainer />
