@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# harness artifact
+system-commandline-sentinel-files/
