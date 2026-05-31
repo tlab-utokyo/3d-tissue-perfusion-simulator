@@ -43,8 +43,8 @@ const THETA_DEFAULT = 1.0;
 const ZERO_ORDER_REG = 1e-3;
 
 // 各ステップ内で反応線形化を陰的化する Picard 反復の上限と収束許容。
-const PICARD_MAX = 4;
-const PICARD_TOL = 1e-6;
+const PICARD_MAX = 6;
+const PICARD_TOL = 1e-7;
 
 /** 三重対角系 (sub a, diag b, super c) x = d を Thomas 法で解く（破壊的・新配列返却） */
 export function thomas(
@@ -295,19 +295,19 @@ export class Solver {
   }
 
   /**
-   * 定常解を求める。過渡と同じ後退Euler スキームを反復するが、Δt を毎反復 増大させる。
-   * 反応は step 内 Picard で陰的化されているため、Δt→大 で各ステップが定常方程式の
-   * 直接解に近づき、臨界近傍(Da≈2)でも少ない反復で収束する（固定 Δt だと収束が遅く
-   * UI がフリーズしていた）。L-安定なので自由境界でも振動しない。反復回数を返す。
+   * 定常解を、過渡と同じ後退Euler スキームを中程度の固定 Δt=0.02τ で収束まで反復して求める。
+   * ※ 巨大 Δt（旧実装の漸増→1e4τ）は、培地浴・厚壁などの自由境界(壊死前縁)ケースで
+   *    Picard が基底間を行き来して別の不動点（過剰枯渇）に誤収束する。Δt≲0.02τ なら
+   *    前縁が滑らかに進み過渡解と同じ正しい定常へ収束する（全 L で ≤~100 反復・数ms）。
+   * 過渡アニメ(0.01τ)と同系の値に揃うので、プロファイルの破線(定常)＝実線の終端 となる。
+   * L-安定なので振動しない。反復回数を返す。
    */
-  steadySolve(tol = 1e-8, maxIter = 400): number {
-    const tau = this.diffusionTime();
-    let dt = 0.05 * tau;
+  steadySolve(tol = 1e-7, maxIter = 3000): number {
+    const dt = 0.02 * this.diffusionTime();
     let it = 0;
     for (; it < maxIter; it++) {
       this.step(dt);
       if (this.lastResidual < tol) break;
-      dt = Math.min(dt * 1.5, 1e4 * tau); // 定常解直接解の極限へ漸増
     }
     this.t = Infinity; // 定常（時間情報は無効）
     this.lastResidual = 0;
